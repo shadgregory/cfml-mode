@@ -48,7 +48,7 @@
   '("area" "base" "basefont" "br" "col" "frame" "hr" "img" "input"
 	"isindex" "link" "meta" "param" "wbr"))
 
-(defconst cfml-html-unclosed-tags 
+(defconst cfml-html-unclosed-tags
   '("body" "colgroup" "dd" "dt" "head" "html" "li" "option"
 	"p" "tbody" "td" "tfoot" "th" "thead" "tr"))
 
@@ -64,13 +64,11 @@
   (save-excursion
     (progn
       (move-beginning-of-line nil)
-      (skip-chars-backward "\n \t")
+      (search-backward-regexp "^[ \t]*<cfif")
       (back-to-indentation))
     (current-column)))
 
-(defconst cfml-outdent-regexp
-  "\\(<cfelse\\(if\\([^>]+\\)\\)?>\\)"
-  )
+(defconst cfml-outdent-regexp "\\(<cfelse\\(if\\([^>]+\\)\\)?>\\)")
 
 (defconst cfml--cf-submode
   (mhtml--construct-submode 'js-mode
@@ -80,7 +78,7 @@
                             :propertize #'js-syntax-propertize
                             :keymap js-mode-map))
 
-(defconst cfml-tab-width 4)
+(defconst cfml-tab-width 2)
 
 (defun cfml-indent-line ()
   (interactive)
@@ -88,8 +86,9 @@
   (save-excursion
 	(beginning-of-line)
 	(back-to-indentation)
-	(if
-	 (looking-at cfml-outdent-regexp) (indent-line-to (max 0 (- (cfml-get-previous-indentation) cfml-tab-width))))))
+	(if (looking-at cfml-outdent-regexp)
+            (indent-line-to
+             (cfml-get-previous-indentation)))))
 
 (defun cfml-syntax-propertize (start end)
   ;; First remove our special settings from the affected text.  They
@@ -127,7 +126,7 @@
            (mhtml--syntax-propertize-submode cfml--cf-submode end)))))
 
     sgml-syntax-propertize-rules)
-   
+
    ;; Make sure to handle the situation where
    ;; mhtml--syntax-propertize-submode moved point.
    (point) end))
@@ -204,28 +203,48 @@ the rules from `css-mode'."
 
 (defvar cfml--builtin-re
   (concat "\\_<" (regexp-opt '(
-                              "arrayLen"
-                              "arrayAppend"
-                              "dateAdd"
-                              "dateCompare"
-                              "dateDiff"
-                              "dateFormat"
-                              "left"
-                              "listAppend"
-                              "mid"
-                              "ormExecuteQuery"
-                              "queryExecute"
-                              "right"
-                              "writeDump"
-                              "writeOutput")
+                               "asc"
+                               "arrayLen"
+                               "arrayAppend"
+                               "arrayClear"
+                               "arrayContains"
+                               "ArrayContainsNoCase"
+                               "arrayDelete"
+                               "arrayDeleteAt"
+                               "ArrayDeleteNoCase"
+                               "ArrayEach"
+                               "dateAdd"
+                               "dateCompare"
+                               "dateDiff"
+                               "dateFormat"
+                               "left"
+                               "listAppend"
+                               "mid"
+                               "ormExecuteQuery"
+                               "queryExecute"
+                               "replace"
+                               "reverse"
+                               "right"
+                               "RJustify"
+                               "RTrim"
+                               "writeDump"
+                               "writeOutput"
+                               "ToBinary"
+                               "ToString"
+                               "trim"
+                               "UCase"
+                               "URLDecode"
+                               "URLEncodedFormat"
+                               "val"
+                               "wrap"
+                               "xmlFormat")
                             t) "\\_>"))
 
 ;;;###autoload
 (define-derived-mode cfscript-mode js-mode "cfscript"
 	(font-lock-add-keywords nil '(("\\<component\\>" . 'font-lock-keyword-face)))
     (font-lock-add-keywords nil `((,cfml--builtin-re . 'font-lock-builtin-face)))
-    (font-lock-add-keywords nil `((,cfml--types-re . 'font-lock-type-face)))
-)
+    (font-lock-add-keywords nil `((,cfml--types-re . 'font-lock-type-face))))
 
 ;;;###autoload
 (add-to-list 'magic-mode-alist
@@ -235,7 +254,7 @@ the rules from `css-mode'."
              '("<!---" . cfml-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist
-             '("\\.cfm\\'" . cfml-mode))		
+             '("\\.cfm\\'" . cfml-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist
              '("\\.cfc\\'" . cfscript-mode))
