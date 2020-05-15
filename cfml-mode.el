@@ -59,12 +59,21 @@
   '("cfelse" "cfelseif"))
 
 (defun cfml-get-previous-indentation ()
-  "Get the column of the previous indented line"
+  "Get the column of the previous cfif"
   (interactive)
   (save-excursion
     (progn
-      (move-beginning-of-line nil)
-      (search-backward-regexp "^[ \t]*<cfif")
+      (setq cfif-count 0)
+      (catch 'out
+        (while (not (equal cfif-count 1))
+          (if (equal 1 (point))
+              (throw 'out 3))
+          (move-beginning-of-line nil)
+          (search-backward-regexp "<.*cfif")
+          (if (string-match-p "^[ \t]*<\\/cfif>" (thing-at-point 'line t))
+              (setq cfif-count (- cfif-count 1)))
+          (if (string-match-p "^[ \t]*<cfif" (thing-at-point 'line))
+              (setq cfif-count (+ cfif-count 1)))))
       (back-to-indentation))
     (current-column)))
 
@@ -203,7 +212,6 @@ the rules from `css-mode'."
 
 (defvar cfml--builtin-re
   (concat "\\_<" (regexp-opt '(
-                               "asc"
                                "arrayLen"
                                "arrayAppend"
                                "arrayClear"
@@ -213,8 +221,10 @@ the rules from `css-mode'."
                                "arrayDeleteAt"
                                "ArrayDeleteNoCase"
                                "ArrayEach"
+                               "asc"
                                "dateAdd"
                                "dateCompare"
+                               "dateConvert"
                                "dateDiff"
                                "dateFormat"
                                "left"
@@ -237,7 +247,25 @@ the rules from `css-mode'."
                                "URLEncodedFormat"
                                "val"
                                "wrap"
-                               "xmlFormat")
+                               "xmlFormat"
+                               "Now"
+                               "createDate"
+                               "createDateTime"
+                               "createTime"
+                               "createTimeSpan"
+                               "MonthAsString"
+                               "parseDateTime"
+                               "Quarter"
+                               "Second"
+                               "SetDay"
+                               "SetHour"
+                               "SetMinute"
+                               "SetMonth"
+                               "SetSecond"
+                               "SetYear"
+                               "timeFormat"
+                               "week"
+                               "year")
                             t) "\\_>"))
 
 ;;;###autoload
