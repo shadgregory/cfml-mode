@@ -36,6 +36,8 @@
 
 (require 'mhtml-mode)
 (require 'js)
+(require 'sql-indent)
+(require 'sql)
 
 (defgroup cfml nil
   "Major mode for cfml files"
@@ -79,6 +81,9 @@
 
 (defconst cfml-outdent-regexp "\\(<cfelse\\(if\\([^>]+\\)\\)?>\\)")
 
+(defun sql-syntax-propertize (start end)
+  (goto-char start))
+
 (defconst cfml--cf-submode
   (mhtml--construct-submode 'js-mode
                             :name "cfscript"
@@ -86,6 +91,14 @@
                             :syntax-table js-mode-syntax-table
                             :propertize #'js-syntax-propertize
                             :keymap js-mode-map))
+
+(defconst cfml--sql-submode
+  (mhtml--construct-submode 'sql-mode
+                            :name "cfquery"
+                            :end-tag "</cfquery>"
+                            :syntax-table sql-mode-syntax-table
+                            :propertize #'sql-syntax-propertize
+                            :keymap sql-mode-map))
 
 (defconst cfml-tab-width 2)
 
@@ -121,6 +134,12 @@
          ;; Don't apply in a comment.
          (unless (syntax-ppss-context (syntax-ppss))
            (mhtml--syntax-propertize-submode mhtml--css-submode end)))))
+    ("<cfquery.*?>"
+     (0 (ignore
+         (goto-char (match-end 0))
+         ;; Don't apply in a comment.
+         (unless (syntax-ppss-context (syntax-ppss))
+           (mhtml--syntax-propertize-submode cfml--sql-submode end)))))
     ("<script.*?>"
      (0 (ignore
          (goto-char (match-end 0))
@@ -182,10 +201,12 @@ the rules from `css-mode'."
   (mhtml--mark-buffer-locals mhtml--css-submode)
   (mhtml--mark-buffer-locals mhtml--js-submode)
   (mhtml--mark-buffer-locals cfml--cf-submode)
+  (mhtml--mark-buffer-locals cfml--sql-submode)
 
   (mhtml--mark-crucial-buffer-locals mhtml--css-submode)
   (mhtml--mark-crucial-buffer-locals mhtml--js-submode)
   (mhtml--mark-crucial-buffer-locals cfml--cf-submode)
+  (mhtml--mark-crucial-buffer-locals cfml--sql-submode)
   (setq mhtml--crucial-variables (delete-dups mhtml--crucial-variables))
 
   ;; Hack
